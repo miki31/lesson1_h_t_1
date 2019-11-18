@@ -1,38 +1,54 @@
 function createElement() {
   // потрібно реалізувати
 
-  // створення елемента за назвою
-  var elem = document.createElement(arguments[0]);
-
-  // Якщо 3-й елемент масив то отримано батьківський елемент
-  if (Array.isArray(arguments[2])) {
-    //
-    if ('style' in arguments[1]) {
-      let object = arguments[1].style;
-      let style = '';
-      for (let key in object) {
-        let keyCSS = '';
-
-        for (let i = 0; i < key.length; i++) {
-          var c = key.charAt(i);
-          var isUpperCase = c.toUpperCase() === c;
-          if (isUpperCase) {
-            keyCSS += '-';
-            keyCSS += c.toLowerCase();
-          } else {
-            keyCSS += c;
-          }
-        }
-
-        style += keyCSS;
-        style += ': ';
-        style += object[key];
-        style += ';';
+  function isParentElement(obj) {
+    for (let index = 0; index < obj.length; index++) {
+      if (Array.isArray(obj[index])) {
+        return obj[index];
       }
-      elem.style.cssText = style;
     }
+    return false;
+  }
 
-    let elems = arguments[2];
+  function hasParam(obj, param) {
+    for (let index = 0; index < obj.length; index++) {
+      // if ('style' in obj[index]) {
+      if (obj[index] instanceof Object) {
+        if (param in obj[index]) {
+          return obj[index];
+        }
+      }
+    }
+    return false;
+  }
+
+  function putStyles(object) {
+    object = object.style;
+    let style = '';
+    for (let key in object) {
+      let keyCSS = '';
+
+      for (let i = 0; i < key.length; i++) {
+        let c = key.charAt(i);
+        let isUpperCase = c.toUpperCase() === c;
+        if (isUpperCase) {
+          keyCSS += '-';
+          keyCSS += c.toLowerCase();
+        } else {
+          keyCSS += c;
+        }
+      }
+
+      style += keyCSS;
+      style += ': ';
+      style += object[key];
+      style += ';';
+    }
+    elem.style.cssText = style;
+  }
+
+  function addChildren(elems) {
+    // let elems = arguments[2];
     for (let i = 0; i < elems.length; i++) {
       if (i === 2) {
         elem.appendChild(document.createTextNode(elems[i]));
@@ -40,23 +56,48 @@ function createElement() {
         elem.appendChild(elems[i]);
       }
     }
-  } // інакше - дочірній
-  // перевірка чи це не елемент (типу <br>) без атрибутів
-  else if (arguments.length !== 1) {
-    var text;
-    if (arguments.length === 2) {
-      if (typeof arguments[1] === String) {
-        text = arguments[1];
-      } else {
-        text = arguments[1].textContent;
+  }
+
+  function hasText(obj) {
+    for (let index = 1; index < obj.length; index++) {
+      if (typeof obj[index] === 'string') {
+        return obj[index];
       }
-    } else {
-      text = arguments[2];
     }
+    let o = hasParam(obj, 'textContent');
+    if (o) {
+      return o.textContent;
+    }
+    return false;
+  }
+
+  function addText(text) {
     var content = document.createTextNode(text);
     elem.appendChild(content);
     elem.text = content;
   }
+
+  // створення елемента за назвою
+  let elem = document.createElement(arguments[0]);
+
+  // додати стилі
+  var object = hasParam(arguments, 'style');
+  if (object) {
+    putStyles(object);
+  }
+
+  // Якщо елемент (об'єкт) містить в собі масив то він батьківський
+  var children = isParentElement(arguments);
+  if (children) {
+    addChildren(children);
+  }
+
+  // Додати текст
+  let text = hasText(arguments);
+  if (text) {
+    addText(text);
+  }
+
   return elem;
 }
 
